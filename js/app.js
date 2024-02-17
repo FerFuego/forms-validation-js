@@ -6,8 +6,11 @@
 class Validate_Form {
 
     form = null;
+    inputs = null;
     send = null;
     reset = null;
+    spinner = null;
+    instance = null;
     
     constructor() {
 
@@ -23,19 +26,21 @@ class Validate_Form {
     
     init() {
         this.form = document.getElementById('formulario');
+        this.inputs = this.form.querySelectorAll('input, textarea');
         this.send = document.getElementById('submit');
         this.reset = document.getElementById('reset');
+        this.spinner = document.getElementById('spinner');
         // Listeners
         this.eventsListener();
     }
 
     eventsListener() {
-        // Get all inputs
-        const inputs = this.form.querySelectorAll('input, textarea');
         // Loop on inputs to add event listener
-        inputs.forEach(input => input.addEventListener('blur', this.validate.bind(this)) );
+        this.inputs.forEach(input => input.addEventListener('blur', this.validate.bind(this)) );
         // Add event listener
         this.reset.addEventListener('click', this.resetForm.bind(this));
+        // Add event listener
+        this.send.addEventListener('click', this.sendForm.bind(this));
     }
 
     validate(e) {
@@ -83,16 +88,20 @@ class Validate_Form {
         return true;
     }
 
-    showAlert(message, elem) {
+    showAlert(message, elem, status = 'error') {
         // Check if there is already an error
         const parent = elem.parentElement;
         if (parent.querySelectorAll('.error-message').length > 0) return;
-        // Create error
-        const error = document.createElement('p');
-        error.textContent = message;
-        error.classList.add('error-message','text-red','text-right');
+        // Create notification
+        const notif = document.createElement('p');
+        notif.textContent = message;
+        if (status === 'success') {
+            notif.classList.add('text-green', 'text-center');
+        } else {
+            notif.classList.add('error-message','text-red','text-right');
+        }
         // Insert error before send button in form
-        parent.appendChild(error);
+        parent.appendChild(notif);
     }
 
     removeError(elem) {    
@@ -123,14 +132,32 @@ class Validate_Form {
     }
 
     resetForm() {
-        // Remove errors
-        const errors = this.form.querySelectorAll('.error-message');
-        if(errors.length > 0) {
-           errors.forEach(error => error.remove());
+        // Remove notifications
+        const notifs = document.querySelectorAll('.error-message, .text-green');
+        if(notifs.length > 0) {
+           notifs.forEach(notif => notif.remove());
         }
+        // Reset form fields
+        this.inputs.forEach(input => input.value = '');
         // Disable send button
         this.send.setAttribute('disabled', true);
         this.send.classList.add('opacity-50');
+    }
+
+    sendForm(e) {
+        e.preventDefault();
+        // Show spinner
+        this.spinner.classList.remove('hidden');
+        // Hide spinner after 3 seconds
+        setTimeout(() => {
+            this.spinner.classList.add('hidden');
+            // reset form
+            this.resetForm();
+            // Show success message
+            this.showAlert('The form has been sent successfully', this.form, 'success');
+        }, 3000);
+
+        setTimeout(() => this.resetForm(), 5000);
     }
 
 }
